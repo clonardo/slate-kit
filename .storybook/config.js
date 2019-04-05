@@ -1,13 +1,13 @@
 import React from "react";
-import { configure, addDecorator } from "@storybook/react";
-import { setOptions } from "@storybook/addon-options";
-import { ThemeProvider, injectGlobal } from "styled-components";
+import { configure, addDecorator, addParameters } from "@storybook/react";
+import { withOptions } from "@storybook/addon-options";
+import { ThemeProvider, createGlobalStyle } from "styled-components";
 import theme from "./theme";
 import Styled from "./Styled";
 
 import normalizeCss from "./normalize";
 
-injectGlobal`
+const GlobalStyle = createGlobalStyle`
 body {
   font-size: 16px;
   font-family: Roboto, -apple-system, sans-serif;
@@ -18,22 +18,27 @@ body {
   ${normalizeCss}
 `;
 
-setOptions({
-  name: "Slate-Kit",
-  url: "https://github.com/Vericus/slate-kit",
-  addonPanelInRight: true
-});
-
 // automatically import all files ending in *.stories.js
 const req = require.context("../stories", true, /.stories.js$/);
 function loadStories() {
   req.keys().forEach(filename => req(filename));
 }
 
+addParameters({
+  options: {
+    name: "Slate-Kit",
+    url: "https://github.com/Vericus/slate-kit",
+    panelPosition: "right"
+  }
+});
+
 addDecorator(story => (
-  <ThemeProvider theme={theme}>
-    <Styled>{story()}</Styled>
-  </ThemeProvider>
+  <React.Fragment>
+    <ThemeProvider theme={theme}>
+      <Styled>{story()}</Styled>
+    </ThemeProvider>
+    <GlobalStyle />
+  </React.Fragment>
 ));
 
 configure(loadStories, module);

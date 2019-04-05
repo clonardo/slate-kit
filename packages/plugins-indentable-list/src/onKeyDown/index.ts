@@ -1,15 +1,10 @@
-import { Change } from "slate";
+import { Editor } from "slate";
 import { isKeyHotkey } from "is-hotkey";
 import hotkeys from "slate-hotkeys";
 import { TypeOptions } from "../options";
-import { resetStartAt, unwrapList } from "../changes";
-import { isListNode } from "../utils";
 
-export default function createOnKeyDown(
-  opts: TypeOptions,
-  pluginsWrapper: any
-) {
-  const { startAtField, checkField, blockTypes } = opts;
+export default function createOnKeyDown(opts: TypeOptions) {
+  const { startAtField, checkField } = opts;
   const isTab = isKeyHotkey("tab");
   const isShiftTab = isKeyHotkey("shift+tab");
   const isEnter = isKeyHotkey("enter");
@@ -22,8 +17,8 @@ export default function createOnKeyDown(
   const isDelete = e =>
     isDeleteBackward(e) || isDeleteLineBackward(e) || isDeleteWordBackward(e);
 
-  return (e, change: Change) => {
-    const { value } = change;
+  return (e, editor: Editor, next) => {
+    const { value } = editor;
     const { startBlock, endBlock, selection } = value;
     const {
       isCollapsed,
@@ -31,7 +26,7 @@ export default function createOnKeyDown(
     } = selection;
     const isIndent = isTab(e) && !isShiftTab(e);
     const isSplitBlock =
-      isEnter(e) && !isShiftEnter(e) && isListNode(blockTypes, startBlock);
+      isEnter(e) && !isShiftEnter(e) && editor.isListNode(startBlock);
     const isDeleting = isDelete(e);
     const isOutdent =
       isShiftTab(e) ||
@@ -39,50 +34,56 @@ export default function createOnKeyDown(
         startBlock === endBlock &&
         isCollapsed &&
         startOffset === 0);
-    if (!(isIndent || isSplitBlock || isOutdent)) return undefined;
+    if (!(isIndent || isSplitBlock || isOutdent)) return next();
     if (isIndent) {
       e.preventDefault();
       e.stopPropagation();
-      resetStartAt(opts, change);
-      return undefined;
-    } else if (isSplitBlock) {
+      editor.resetStartAt();
+      return next();
+    }
+    if (isSplitBlock) {
       const { text, data, key } = startBlock;
       if (startBlock === endBlock && isCollapsed && text === "") {
         e.preventDefault();
         e.stopPropagation();
-        unwrapList(opts, change, true, pluginsWrapper);
-        return true;
-      } else if (startBlock === endBlock && startOffset === text.length) {
-        change.insertBlock({
+        editor.unwrapList(true);
+        return undefined;
+      }
+      if (startBlock === endBlock && startOffset === text.length) {
+        editor.insertBlock({
           type: startBlock.type,
           data: data.delete(startAtField).delete(checkField)
         });
-        return true;
-      } else if (startBlock === endBlock) {
-        change.setNodeByKey(key, {
+        return undefined;
+      }
+      if (startBlock === endBlock) {
+        editor.setNodeByKey(key, {
           data: data.delete(startAtField).delete(checkField)
         });
         if (startOffset !== 0) {
-          change.splitBlock(1);
+          editor.splitBlock(1);
+          editor.setNodeByKey(key, {
+            data
+          });
         } else {
-          change.insertBlock({
+          editor.insertBlock({
             type: startBlock.type,
-            data: data.delete(startAtField).delete(checkField)
+            data: data.delete(checkField)
+          });
+          editor.setNodeByKey(key, {
+            data: data.delete(startAtField)
           });
         }
-        change.setNodeByKey(key, {
-          data
-        });
-        return true;
+        return undefined;
       }
-      return undefined;
+      return next();
     }
-    if (isListNode(blockTypes, startBlock)) {
+    if (editor.isListNode(startBlock)) {
       e.preventDefault();
       e.stopPropagation();
-      unwrapList(opts, change, isDeleting, pluginsWrapper);
-      return true;
+      editor.unwrapList(isDeleting);
+      return undefined;
     }
-    return undefined;
+    return next();
   };
 }

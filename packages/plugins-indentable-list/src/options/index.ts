@@ -6,10 +6,11 @@ export type BlockTypes = { [key in ListTypes]?: string | null };
 
 export interface TypeOptions {
   blockTypes: BlockTypes;
-  externalRenderer: boolean;
+  renderer?: (...args: any[]) => any;
   startAtField: string;
   checkField: string;
   withHandlers: boolean;
+  label: string;
 }
 
 const defaultOptions = {
@@ -18,18 +19,25 @@ const defaultOptions = {
     unorderedlist: "ul-list",
     checklist: "check-list"
   },
-  externalRenderer: false,
+  renderer: undefined,
   startAtField: "startAt",
   checkField: "checked",
-  withHandlers: true
+  withHandlers: true,
+  label: "indentable-list"
 };
 
 class Options extends Record(defaultOptions) {
-  blockTypes: BlockTypes;
-  externalRenderer: boolean;
-  startAtField: string;
-  checkField: string;
-  withHandlers: boolean;
+  public blockTypes: BlockTypes;
+
+  public renderer: (...args: any[]) => any;
+
+  public startAtField: string;
+
+  public checkField: string;
+
+  public withHandlers: boolean;
+
+  public label: string;
 }
 
 export default Options;

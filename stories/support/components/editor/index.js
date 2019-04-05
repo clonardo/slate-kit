@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { compose } from "recompose";
+import { compose, mapProps } from "recompose";
 import {
   getEventRange,
   getEventTransfer,
@@ -9,17 +9,15 @@ import {
   Editor
 } from "slate-react";
 import { Value } from "slate";
-import PluginsWrapper from "@vericus/slate-kit-plugins-wrapper";
-import { WithReadOnly } from "@vericus/slate-kit-read-only";
-import { WithRenderers } from "@vericus/slate-kit-renderer";
-import HistoryPlugin from "@vericus/slate-kit-history";
-import pasteCleaner from "@vericus/slate-kit-paste-helpers";
 import Toolbar from "../toolbar";
 
 const EnchancedEditor = compose(
-  WithRenderers,
-  WithReadOnly
+  mapProps(({ forwardedRef, ...rest }) => ({ ref: forwardedRef, ...rest }))
 )(Editor);
+
+const EnchancedEditorWithRef = React.forwardRef(({ ...props }, ref) => (
+  <EnchancedEditor {...props} forwardedRef={ref} />
+));
 
 export default class SlateKitEditor extends Component {
   constructor(props) {
@@ -27,8 +25,7 @@ export default class SlateKitEditor extends Component {
     this.state = {
       value: Value.fromJSON(props.initialState)
     };
-    this.pluginsWrapper = new PluginsWrapper();
-    this.plugins = this.pluginsWrapper.makePlugins(this.props.pluginOpts);
+    this.editor = React.createRef();
   }
 
   onChange = ({ value }) => {
@@ -37,38 +34,40 @@ export default class SlateKitEditor extends Component {
     });
   };
 
-  onPaste = (event, change) => {
+  onPaste = async (event, editor) => {
     const data = getEventTransfer(event);
     if (data.html) {
-      const { origin, cleanedHTML } = pasteCleaner(data.html);
-      const parser = this.pluginsWrapper.getSerializer();
-      const { document } = parser.deserialize(cleanedHTML);
-      change.insertFragment(document);
+      const { origin, cleanedHTML } = await editor.cleanHTML(data.html);
+      const { document } = editor.deserializeHTML(cleanedHTML);
+      editor.insertFragment(document);
       return true;
     }
   };
 
-  renderToolbar = () => (
-    <Toolbar
-      pluginsWrapper={this.pluginsWrapper}
-      value={this.state.value}
-      onChange={this.onChange}
-      isReadOnly={this.props.isReadOnly}
-    />
-  );
+  renderToolbar = () => {
+    if (this.editor && this.editor.current) {
+      return (
+        <Toolbar
+          onChange={this.onChange}
+          isReadOnly={this.props.isReadOnly}
+          editor={this.editor.current}
+        />
+      );
+    }
+  };
 
   render() {
     return (
       <div>
         {this.renderToolbar()}
         <div className="editorContainer">
-          <EnchancedEditor
+          <EnchancedEditorWithRef
             placeholder={"Enter some text..."}
-            plugins={this.plugins}
+            plugins={this.props.plugins}
             value={this.state.value}
             onChange={this.onChange}
             onPaste={this.onPaste}
-            pluginsWrapper={this.pluginsWrapper}
+            ref={this.editor}
             {...this.props}
           />
         </div>

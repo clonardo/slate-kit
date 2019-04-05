@@ -1,5 +1,5 @@
 {
-  "version": "0.0.13",
+  "version": "0.1.22",
   "name": "@vericus/slate-kit-renderer",
   "description": "TODO: fill in this description later",
   "homepage": "https://github.com/Vericus/slate-kit/",
@@ -27,33 +27,38 @@
     "clean:module": "rm -rf ./node_modules",
     "clean:build": "rm -rf ./dist ./lib ./module",
     "build": "tsc -b .",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "debug": "tsc --traceResolution ./src"
   },
   "umdGlobals": {
-    "@vericus/slate-kit-plugins-wrapper": "SlateKitPluginsWrapper",
     "react": "react",
     "immutable": "Immutable",
     "slate": "Slate",
     "tslib": "TSLib",
-    "hoist-non-react-statics": "HoistNonReactStatics",
     "recompose": "Recompose"
   },
   "dependencies": {
-    "@vericus/slate-kit-plugins-wrapper": "^0.1.9",
-    "hoist-non-react-statics": "^3.0.1",
-    "immutable": "^3.8.2",
-    "react": "^16.4.2",
-    "react-dom": "^16.4.2",
-    "recompose": "^0.30.0",
+    "immutable": ">=3.8.2",
+    "react": ">=16.0.0",
+    "react-dom": ">=16.0.0",
     "tslib": "^1.9.3"
   },
-  "peerDepencies": {
-    "@vericus/slate-kit-plugins-wrapper": "^0.1.4"
+  "peerDependencies": {
+    "immutable": ">=3.8.2",
+    "react": ">=16.0.0",
+    "react-dom": ">=16.0.0",
+    "slate": ">=0.44.0 <0.46.0",
+    "tslib": "^1.9.3"
   },
   "keywords": [
     "Vericus",
     "slate",
     "slate-kit"
   ],
-  "gitHead": "5b72fd34471ce338c017768bf4346fea448d163f"
+  "devDependencies": {
+    "@types/react": "^16.7.3",
+    "@vericus/slate-kit-typescript-typings": "^1.1.11",
+    "@vericus/slate-kit-utils-hyperscript": "^0.2.11",
+    "slate": ">=0.44.0 <0.46.0"
+  }
 }

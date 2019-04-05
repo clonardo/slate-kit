@@ -1,5 +1,6 @@
 import * as React from "react";
-import { Mark } from "slate";
+import Register from "@vericus/slate-kit-utils-register-helpers";
+import { Mark, Plugin } from "slate";
 
 export interface Props {
   mark: Mark;
@@ -8,17 +9,24 @@ export interface Props {
   className?: string;
 }
 
-export default function createRenderMark(type) {
-  return {
-    marks: {
-      [type]: (props: Props) => {
-        const { attributes, children, className } = props;
-        return (
-          <span {...attributes} className={className}>
-            {children}
-          </span>
-        );
-      }
-    }
-  };
+export default function createRenderMark(options): Plugin {
+  const { marks } = options;
+  const marksRenderer = Object.entries(marks).reduce(
+    (renderers, [markName, _markType]) => {
+      return {
+        ...renderers,
+        // eslint-disable-next-line react/display-name
+        [markName]: (props: Props) => {
+          const { attributes, children, className } = props;
+          return (
+            <span {...attributes} className={className}>
+              {children}
+            </span>
+          );
+        }
+      };
+    },
+    {}
+  );
+  return Register({ marksRenderer });
 }

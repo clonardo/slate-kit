@@ -1,5 +1,5 @@
 {
-  "version": "0.0.5",
+  "version": "0.1.25",
   "name": "@vericus/slate-kit-media",
   "description": "TODO: fill in this description later",
   "homepage": "https://github.com/Vericus/slate-kit/",
@@ -27,11 +27,13 @@
     "clean:module": "rm -rf ./node_modules",
     "clean:build": "rm -rf ./dist ./lib ./module",
     "build": "tsc -b .",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "debug": "tsc --traceResolution ./src"
   },
   "umdGlobals": {
+    "@vericus/slate-kit-utils-toolbars": "SlateKitToolbar",
+    "@vericus/slate-kit-utils-register-helpers": "SlateKitRegister",
     "@vericus/slate-kit-plugins-utils": "SlateKitPluginsutils",
-    "@vericus/slate-kit-media-renderer": "SlateKitMediaRenderer",
     "is-hotkey": "IsHotkey",
     "immutable": "Immutable",
     "slate": "Slate",
@@ -39,17 +41,20 @@
     "tslib": "TSLib"
   },
   "dependencies": {
-    "@vericus/slate-kit-media-renderer": "^0.0.2",
-    "immutable": "^3.8.2",
+    "@vericus/slate-kit-utils-register-helpers": "^0.1.9",
+    "@vericus/slate-kit-utils-toolbars": "^0.1.6",
+    "immutable": ">=3.8.2",
     "is-hotkey": "^0.1.3",
-    "slate": "^0.40.2",
+    "slate": ">=0.44.0 <0.46.0",
     "slate-hotkeys": "^0.2.3",
     "tslib": "^1.9.3"
   },
   "peerDependencies": {
-    "@vericus/slate-kit-plugins-utils": "^0.1.0",
+    "@vericus/slate-kit-plugins-utils": "^0.2.0",
+    "@vericus/slate-kit-utils-register-helpers": "^0.1.0",
+    "@vericus/slate-kit-utils-toolbars": "^0.1.0",
     "debug": ">=3.1.0",
-    "slate": ">=0.41.0 <0.42.0",
+    "slate": ">=0.44.0 <0.46.0",
     "slate-hotkeys": ">=0.2.3"
   },
   "keywords": [
@@ -57,5 +62,8 @@
     "slate",
     "slate-kit"
   ],
-  "gitHead": "d20431823a3f386ebb69be9518fe14c05d8d7607"
+  "devDependencies": {
+    "@vericus/slate-kit-typescript-typings": "^1.1.11",
+    "@vericus/slate-kit-utils-hyperscript": "^0.2.11"
+  }
 }

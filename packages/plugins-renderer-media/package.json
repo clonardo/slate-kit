@@ -1,5 +1,5 @@
 {
-  "version": "0.0.2",
+  "version": "0.1.19",
   "name": "@vericus/slate-kit-media-renderer",
   "description": "TODO: fill in this description later",
   "homepage": "https://github.com/Vericus/slate-kit/",
@@ -27,35 +27,43 @@
     "clean:module": "rm -rf ./node_modules",
     "clean:build": "rm -rf ./dist ./lib ./module",
     "build": "tsc -b .",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "debug": "tsc --traceResolution ./src"
   },
   "umdGlobals": {
+    "@vericus/slate-kit-utils-placeholders": "SlateKitPlaceholder",
+    "@vericus/slate-kit-utils-register-helpers": "SlateKitRegister",
     "immutable": "Immutable",
     "slate": "Slate",
     "react": "React",
     "tslib": "TSLib"
   },
   "dependencies": {
+    "@vericus/slate-kit-utils-placeholders": "^0.1.15",
+    "@vericus/slate-kit-utils-register-helpers": "^0.1.9",
     "react": ">=16.0.0",
     "react-dom": ">=16.0.0",
     "tslib": "^1.9.3"
   },
   "devDependencies": {
-    "react": ">=16.0.0",
-    "react-dom": ">=16.3.2",
-    "slate": ">=0.41.0 <0.42.0",
-    "slate-prop-types": ">=0.4.0"
-  },
-  "peerDependencies": {
+    "@vericus/slate-kit-typescript-typings": "^1.1.11",
+    "@vericus/slate-kit-utils-hyperscript": "^0.2.11",
     "react": ">=16.0.0",
     "react-dom": ">=16.0.0",
-    "slate": ">=0.32.0",
-    "slate-prop-types": ">=0.4.0"
+    "slate": ">=0.44.0 <0.46.0",
+    "slate-prop-types": ">=0.5.7"
+  },
+  "peerDependencies": {
+    "@vericus/slate-kit-utils-placeholders": "^0.1.0",
+    "@vericus/slate-kit-utils-register-helpers": "^0.1.0",
+    "react": ">=16.0.0",
+    "react-dom": ">=16.0.0",
+    "slate": ">=0.44.0 <0.46.0",
+    "slate-prop-types": ">=0.5.7"
   },
   "keywords": [
     "Vericus",
     "slate",
     "slate-kit"
-  ],
-  "gitHead": "fec3d70ae8755970771d733b72141e50b53de92c"
+  ]
 }

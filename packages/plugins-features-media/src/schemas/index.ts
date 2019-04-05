@@ -1,4 +1,4 @@
-import { Change, SlateError, Block, Text } from "slate";
+import { Editor, SlateError, Block, Text } from "slate";
 import { TypeOption, CommonOption } from "../options";
 
 export default function createSchema(opts: TypeOption) {
@@ -21,52 +21,55 @@ export default function createSchema(opts: TypeOption) {
             max: 1
           },
           {
-            match: { type: captionType },
+            match: [{ type: captionType }],
             min: 0,
             max: 1
           }
         ],
-        normalize: (change: Change, error: SlateError) => {
+        last: {
+          type: nodeType => {
+            return [
+              ...Object.values(mediaTypes).reduce(
+                (acc, mediaType) => [...acc, mediaType.type],
+                []
+              ),
+              captionType
+            ].includes(nodeType);
+          }
+        },
+        normalize: (editor: Editor, error: SlateError) => {
           switch (error.code) {
-            case "child_type_invalid":
-              change.withoutNormalizing(c =>
-                c
-                  .removeNodeByKey(error.child.key)
-                  .removeNodeByKey(error.node.key)
-              );
-
-              return;
-            case "child_required":
-              change.removeNodeByKey(error.node.key);
-              return;
             case "child_unknown":
-              change.removeNodeByKey(error.child.key);
-              return;
+              editor.removeNodeByKey(error.child.key);
+              break;
+            case "last_child_type_invalid":
+              if (Block.isBlock(error.child)) {
+                editor.setNodeByKey(error.child.key, captionType);
+              } else {
+                editor.unwrapBlockByKey(error.node.key);
+              }
+              break;
+            default:
+              break;
           }
         }
       },
       [captionType]: {
         parent: { type },
-        previous: Object.values(mediaTypes).reduce(
-          (allowedTypes, mediaType: CommonOption) => [
-            ...allowedTypes,
-            {
-              type: mediaType.type
-            }
-          ],
-          []
-        ),
-        nodes: [{ match: { object: "text", min: 1 } }],
-        normalize: (change: Change, error: SlateError) => {
+        nodes: [{ match: [{ object: "text" }], min: 1 }],
+        normalize: (editor: Editor, error: SlateError) => {
           switch (error.code) {
             case "parent_type_invalid":
-              return change.unwrapNodeByKey(error.parent.key);
+              editor.unwrapNodeByKey(error.parent.key);
+              break;
             case "child_object_invalid":
-              return change.removeNodeByKey(error.child.key);
+              editor.removeNodeByKey(error.child.key);
+              break;
             case "child_required":
-              return change.insertNodeByKey(error.node.key, 0, Text.create(""));
-            case "previous_sibling_type_invalid":
-              return change.removeNodeByKey(error.node.key);
+              editor.insertNodeByKey(error.node.key, 0, Text.create(""));
+              break;
+            default:
+              break;
           }
         }
       },
@@ -95,26 +98,28 @@ export default function createSchema(opts: TypeOption) {
               }
               return data;
             }, {}),
-            normalize: (change: Change, error: SlateError) => {
-              switch (error.code) {
+            normalize: (editor: Editor, error: SlateError) => {
+              const { key, node, code } = error;
+              const defaultKey = key
+                ? `default${key.replace(/\w/, c => c.toUpperCase())}`
+                : "";
+              switch (code) {
                 case "parent_type_invalid":
-                  change.wrapBlockByKey(error.node.key, type);
-                  return;
+                  editor.wrapBlockByKey(error.node.key, type);
+                  break;
                 case "node_data_invalid":
-                  const { key, node } = error;
-                  const defaultKey = `default${key.replace(/\w/, c =>
-                    c.toUpperCase()
-                  )}`;
                   if (
                     mediaType[`${key}Options`] &&
                     mediaType[defaultKey] &&
                     Block.isBlock(node)
                   ) {
-                    change.setNodeByKey(node.key, {
+                    editor.setNodeByKey(node.key, {
                       data: node.data.set(key, mediaType[defaultKey])
                     });
                   }
-                  return;
+                  break;
+                default:
+                  break;
               }
             }
           }

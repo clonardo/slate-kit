@@ -1,5 +1,5 @@
 {
-  "version": "0.1.6",
+  "version": "0.2.16",
   "name": "@vericus/slate-kit-align",
   "description": "Plugins to provide a way to align blocks on slate",
   "homepage": "https://github.com/Vericus/slate-kit/",
@@ -27,28 +27,33 @@
     "clean:module": "rm -rf ./node_modules",
     "clean:build": "rm -rf ./dist ./lib ./module",
     "build": "tsc -b .",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "debug": "tsc --traceResolution ./src"
   },
   "umdGlobals": {
     "immutable": "Immutable",
     "tslib": "TSLib",
     "slate": "Slate",
+    "@vericus/slate-kit-utils-register-helpers": "SlateKitRegister",
     "@vericus/slate-kit-plugins-utils": "SlateKitPluginsutils"
   },
   "dependencies": {
+    "@vericus/slate-kit-utils-register-helpers": "^0.1.9",
     "debug": "^3.1.0",
-    "immutable": "^3.8.2",
+    "immutable": ">=3.8.2",
     "tslib": "^1.9.3"
   },
   "devDependencies": {
+    "@vericus/slate-kit-typescript-typings": "^1.1.11",
+    "@vericus/slate-kit-utils-hyperscript": "^0.2.11",
     "expect": "^23.1.0",
-    "slate": ">=0.41.0 <0.42.0",
-    "slate-simulator": ">=0.4.59",
+    "slate": ">=0.44.0 <0.46.0",
     "to-camel-case": "^1.0.0"
   },
   "peerDependencies": {
-    "@vericus/slate-kit-plugins-utils": "^0.1.0",
-    "slate": ">=0.41.0 <0.42.0"
+    "@vericus/slate-kit-plugins-utils": "^0.2.0",
+    "@vericus/slate-kit-utils-register-helpers": "^0.1.0",
+    "slate": ">=0.44.0 <0.46.0"
   },
   "keywords": [
     "Vericus",
@@ -57,6 +62,5 @@
     "slate-plugin",
     "editor",
     "alignment"
-  ],
-  "gitHead": "d20431823a3f386ebb69be9518fe14c05d8d7607"
+  ]
 }

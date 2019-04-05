@@ -5,9 +5,10 @@ export interface TypeOptions {
   textBlocks: string[];
   alignments: string[];
   dataField: string;
+  label: string;
 }
 
-const defaultOption: TypeOptions = {
+export const defaultOption: TypeOptions = {
   floatBlocks: [],
   textBlocks: [
     "paragraph",
@@ -18,14 +19,40 @@ const defaultOption: TypeOptions = {
     "blockquote"
   ],
   alignments: ["left", "right", "center", "justify"],
-  dataField: "textAlign"
+  dataField: "textAlign",
+  label: "align"
 };
 
 class Options extends Record(defaultOption) {
-  floatBlocks: string[];
-  textBlocks: string[];
-  alignments: string[];
-  dataField: string;
+  public floatBlocks: string[];
+
+  public textBlocks: string[];
+
+  public alignments: string[];
+
+  public dataField: string;
+
+  public label: string;
+
+  public static create(option: Partial<TypeOptions>): TypeOptions {
+    const options = {
+      ...defaultOption,
+      ...option,
+      floatBlocks: [
+        ...defaultOption.floatBlocks,
+        ...(option.floatBlocks ? option.floatBlocks : [])
+      ],
+      alignments: [
+        ...defaultOption.alignments,
+        ...(option.alignments ? option.alignments : [])
+      ],
+      textBlocks: [
+        ...defaultOption.textBlocks,
+        ...(option.textBlocks ? option.textBlocks : [])
+      ]
+    };
+    return new Options(options);
+  }
 }
 
 export default Options;

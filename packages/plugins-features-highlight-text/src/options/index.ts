@@ -2,6 +2,8 @@ import { Record } from "immutable";
 import isPlainObject from "is-plain-obj";
 
 export interface TypeOptions {
+  renderer?: (...args: any[]) => any;
+  name: string;
   type: string;
   marks: {
     [type: string]: string;
@@ -10,31 +12,43 @@ export interface TypeOptions {
   data: string;
   styles: string[];
   defaultColor: string;
-  externalRenderer: boolean;
+  label: string;
 }
 
 const defaultOptions = {
+  name: undefined,
   marks: undefined,
   type: undefined,
   styles: undefined,
   data: undefined,
   defaultColor: undefined,
   alpha: 1,
-  externalRenderer: false
+  renderer: undefined,
+  label: undefined
 };
 
 class Options extends Record(defaultOptions, "highlight text option") {
-  marks: {
+  public name: string;
+
+  public marks: {
     [type: string]: string;
   };
-  type: string;
-  styles: string[];
-  data: string;
-  alpha: number;
-  defaultColor: string;
-  externalRenderer: boolean;
 
-  static create(attrs: any = {}) {
+  public type: string;
+
+  public styles: string[];
+
+  public data: string;
+
+  public alpha: number;
+
+  public defaultColor: string;
+
+  public renderer: (...args: any[]) => any;
+
+  public label: string;
+
+  public static create(attrs: any = {}) {
     if (Options.isOptions(attrs)) return attrs;
     if (isPlainObject(attrs)) return Options.fromJSON(attrs);
 
@@ -43,10 +57,18 @@ class Options extends Record(defaultOptions, "highlight text option") {
     );
   }
 
-  static fromJSON(object: any) {
+  public static fromJSON(object: any) {
     if (Options.isOptions(object)) return object;
 
-    const { type, data, styles, defaultColor, alpha = 1 } = object;
+    const {
+      name,
+      type,
+      data,
+      styles,
+      defaultColor,
+      alpha = 1,
+      renderer
+    } = object;
     if (!type || !data || !styles || !defaultColor || !Array.isArray(styles)) {
       throw new Error("Highlight text require type, data and style option");
     }
@@ -63,17 +85,20 @@ class Options extends Record(defaultOptions, "highlight text option") {
       data,
       styles,
       alpha,
-      defaultColor
+      defaultColor,
+      name,
+      renderer
     });
   }
 
-  static isOptions(args: any) {
-    return !!(
-      args instanceof Record &&
-      ["marks", "type", "data", "styles", "defaultColor"].every(key =>
-        args.has(key)
-      )
-    );
+  public static isOptions(args: any) {
+    if (args instanceof Record) {
+      const record = args as Options;
+      return ["marks", "type", "data", "styles", "defaultColor"].every(key =>
+        record.has(key)
+      );
+    }
+    return false;
   }
 }
 

@@ -1,6 +1,8 @@
 import * as React from "react";
-import { Node, Block } from "slate";
-import { ImageCaption, CaptionPlaceholder, Media, Image } from "./components";
+import Register from "@vericus/slate-kit-utils-register-helpers";
+import { Node, Block, Editor, Plugin } from "slate";
+import Placeholder from "@vericus/slate-kit-utils-placeholders";
+import { ImageCaption, Media, Image, CaptionPlaceholder } from "./components";
 
 export interface Props {
   attributes: any;
@@ -11,72 +13,31 @@ export interface Props {
 
 const createMediaRenderer = (imageType: any | undefined) => {
   const { type } = imageType || { type: undefined };
+  // eslint-disable-next-line react/display-name
   return props => <Media {...props} imageType={type} />;
 };
 
-const createMediaCaption = (
-  imageType: any | undefined,
-  utils,
-  captionHideField: string | null
-) => {
-  const { getSource, hideCaption } = utils;
+const createMediaCaption = (imageType: any | undefined) => {
   const { type } = imageType || { type: undefined };
+  // eslint-disable-next-line react/display-name
   return props =>
-    hideCaption(props.node) ? null : (
-      <ImageCaption {...props} imageType={type} getSource={getSource} />
+    props.editor.hideCaption(props.node) ? null : (
+      <ImageCaption {...props} imageType={type} />
     );
 };
 
-const createCaptionPlaceholder = (
-  captionType: string,
-  imageType: string | undefined,
-  utils
-) => {
-  const { getSource } = utils;
-  return {
-    condition: props => {
-      if (!imageType) return false;
-      if (props.node.type !== captionType) return false;
-      const { parent } = props;
-      const imageBlock =
-        imageType &&
-        parent.nodes
-          .toArray()
-          .find(n => Block.isBlock(n) && n.type === imageType);
-      if (imageBlock) {
-        const src = getSource(imageBlock);
-        return !((src && src === "") || !src) && props.node.text === "";
-      }
-      return props.node.text === "";
-    },
-    render: props => <CaptionPlaceholder {...props} />
-  };
-};
-
-const createImage = (changes, utils, onInsert, extensions) => {
-  const { getImageWidth, getSource } = utils;
-  const { updateImageSource, toggleCaption } = changes;
+const createImage = (onInsert, extensions) => {
+  // eslint-disable-next-line react/display-name
   return props => (
-    <Image
-      {...props}
-      extensions={extensions}
-      onInsert={onInsert}
-      getImageWidth={getImageWidth}
-      getSource={getSource}
-      updateImageSource={updateImageSource}
-      toggleCaption={toggleCaption}
-    />
+    <Image {...props} extensions={extensions} onInsert={onInsert} />
   );
 };
 
-export default function createRenderer(opts, changes, utils) {
-  const { mediaTypes, captionType, captionHideField } = opts;
+export default function createRenderer(opts): Plugin[] {
+  const { mediaTypes, captionType } = opts;
   const { image } = mediaTypes || { image: undefined };
-  let onInsert;
+  const { onInsert } = image || { onInsert: undefined };
   let extensions;
-  if (image && image.onInsert) {
-    onInsert = image.onInsert;
-  }
   if (
     image &&
     image.allowedExtensions &&
@@ -86,16 +47,25 @@ export default function createRenderer(opts, changes, utils) {
       .map(ext => (ext.match(/^\./) ? ext : `.${ext}`))
       .join(", ");
   }
-  return {
-    nodes: {
-      media: createMediaRenderer(image),
-      image: createImage(changes, utils, onInsert, extensions),
-      mediacaption: createMediaCaption(image, utils, captionHideField)
-    },
-    placeholders: [
-      createCaptionPlaceholder(captionType, image && image.type, utils)
-    ]
+  const nodesRenderer = {
+    media: createMediaRenderer(image),
+    image: createImage(onInsert, extensions),
+    mediacaption: createMediaCaption(image)
   };
+
+  return [
+    Register({ nodesRenderer }),
+    Placeholder({
+      type: "mediaCaption",
+      when: (editor: Editor, node: Node) => {
+        if (!image || !image.type) return false;
+        if (!Block.isBlock(node)) return false;
+        return captionType && node.type === captionType && node.text === "";
+      },
+      // eslint-disable-next-line react/display-name
+      render: props => <CaptionPlaceholder {...props} />
+    })
+  ];
 }
 
 export { ImageCaption };

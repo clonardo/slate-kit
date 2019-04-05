@@ -1,4 +1,4 @@
-import { Block, Change, SlateError, Document } from "slate";
+import { Block, SlateError, Document, Editor, Text } from "slate";
 import { TypeOptions } from "../options";
 
 export default function createSchema(opts: TypeOptions) {
@@ -6,18 +6,20 @@ export default function createSchema(opts: TypeOptions) {
   return {
     document: {
       last: Object.values(blockTypes).map(type => ({ type })),
-      normalize: (change: Change, error: SlateError) => {
-        switch (error.code) {
+      normalize: (editor: Editor, error: SlateError) => {
+        const { code, node } = error;
+        const paragraph = Block.create({
+          type: defaultBlock,
+          nodes: [Text.create("")]
+        });
+        switch (code) {
           case "last_child_type_invalid":
-            const paragraph = Block.create(defaultBlock);
-            if (Document.isDocument(error.node)) {
-              change.insertNodeByKey(
-                error.node.key,
-                error.node.nodes.size,
-                paragraph
-              );
+            if (Document.isDocument(node)) {
+              editor.insertNodeByKey(node.key, node.nodes.size, paragraph);
             }
-            return;
+            break;
+          default:
+            break;
         }
       }
     },
@@ -30,16 +32,16 @@ export default function createSchema(opts: TypeOptions) {
               isVoid: false,
               parent: { object: "document" },
               nodes: [{ match: [{ object: "text" }, { object: "inline" }] }],
-              normalize: (change: Change, error: SlateError) => {
+              normalize: (editor: Editor, error: SlateError) => {
                 switch (error.code) {
                   case "child_object_invalid":
-                    change.removeNodeByKey(error.child.key);
-                    return;
+                    editor.removeNodeByKey(error.child.key);
+                    break;
                   case "parent_object_invalid":
-                    change.unwrapBlockByKey(error.node.key);
-                    return;
+                    editor.unwrapBlockByKey(error.node.key);
+                    break;
                   default:
-                    return;
+                    break;
                 }
               }
             }

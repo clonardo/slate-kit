@@ -2,35 +2,54 @@
   "exclude": [
     "**/*.spec.ts",
     "node_modules",
+    "**/node_modules",
     "*.d.ts",
     "**/*.d.ts",
     "**/lib/**/*.ts",
     "**/dist/**/*.ts",
     "**/module/**/*.ts"
   ],
+  "include": [
+    "packages/**/src/**/*.ts"
+  ],
   "compilerOptions": {
     "baseUrl": ".",
-    "module": "commonjs",
+    "rootDir": ".",
+    "module": "esNext",
     "moduleResolution": "node",
     "target": "es5",
-    "lib": ["es2018", "dom"],
+    "lib": [
+      "es5",
+      "es6",
+      "es7",
+      "es2017",
+      "dom"
+    ],
     "sourceMap": true,
     "pretty": true,
     "jsx": "react",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
     "strictNullChecks": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+    "downlevelIteration": true,
+    "skipLibCheck": false,
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
     "importHelpers": true,
-    "paths": {
-      "@vericus/slate-kit*": ["packages/*/src", "packages/*/lib"],
-      "*": [
-        "node_modules/*",
-        "node_modules/@types/*",
-        "packages/typescript-typings/types/*",
-        "*"
-      ]
-    }
-  },
-  "types": ["react", "jest"]
+    "typeRoots": ["./node_modules/@types", "./packages/typescript-typings/types"],
+    "types": [
+      "react",
+      "jest",
+      "node",
+      "slate",
+      "slate-react",
+      "slate-plain-serializer",
+      "slate-html-serializer",
+      "slate-base64-serializer"
+    ]
+  }
 }

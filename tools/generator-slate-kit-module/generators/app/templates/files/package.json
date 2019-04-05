@@ -27,10 +27,12 @@
     "clean:module": "rm -rf ./node_modules",
     "clean:build": "rm -rf ./dist ./lib ./module",
     "build": "tsc -b .",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "debug": "tsc --traceResolution ./src"
   },
   "umdGlobals": {
     "immutable": "Immutable",
+    "tslib": "TSLib",
     "slate": "Slate"
   },
   "dependencies": {

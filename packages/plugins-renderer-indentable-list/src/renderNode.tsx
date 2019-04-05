@@ -1,6 +1,7 @@
 import * as React from "react";
+import Register from "@vericus/slate-kit-utils-register-helpers";
 import SlateTypes from "slate-prop-types";
-import { Node } from "slate";
+import { Node, Plugin } from "slate";
 
 export interface Props {
   attributes: any;
@@ -28,6 +29,7 @@ const UnOrderedList: React.SFC<Props> = props => {
   );
 };
 
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 const CheckList: React.SFC<Props> = props => {
   const { attributes, children, onMouseDown, className } = props;
   return (
@@ -36,19 +38,19 @@ const CheckList: React.SFC<Props> = props => {
     </ul>
   );
 };
+/* eslint-enable */
 
 OrderedList.propTypes = SlateTypes.Block;
 UnOrderedList.propTypes = SlateTypes.Block;
 CheckList.propTypes = SlateTypes.Block;
 
-export function createRenderNode() {
-  return {
-    nodes: {
-      orderedlist: OrderedList,
-      unorderedlist: UnOrderedList,
-      checklist: CheckList
-    }
+export function createRenderNode(): Plugin {
+  const nodesRenderer = {
+    orderedlist: OrderedList,
+    unorderedlist: UnOrderedList,
+    checklist: CheckList
   };
+  return Register({ nodesRenderer });
 }
 
 export { createRenderNode as default, OrderedList, UnOrderedList, CheckList };

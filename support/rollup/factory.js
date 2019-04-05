@@ -1,14 +1,14 @@
 import babel from "rollup-plugin-babel";
-import builtins from "rollup-plugin-node-builtins";
 import commonjs from "rollup-plugin-commonjs";
 import globals from "rollup-plugin-node-globals";
 import json from "rollup-plugin-json";
 import replace from "rollup-plugin-replace";
 import resolve from "rollup-plugin-node-resolve";
-import { uglify } from "rollup-plugin-uglify";
-import visualizer from "rollup-plugin-visualizer";
+import { terser } from "rollup-plugin-terser";
 import typescript from "rollup-plugin-typescript2";
 import { startCase } from "lodash";
+import analyze from "rollup-plugin-analyzer";
+import { eslint } from "rollup-plugin-eslint";
 import fs from "fs";
 import path from "path";
 
@@ -44,8 +44,11 @@ function configure(pkg, location, env, target) {
     // Allow Rollup to resolve modules from `node_modules`, since it only
     // resolves local modules by default.
     resolve({
-      browser: true
+      browser: true,
+      preferBuiltins: true
     }),
+
+    eslint({}),
 
     // Allow Rollup to resolve CommonJS modules, since it only resolves ES2015
     // modules by default.
@@ -82,9 +85,6 @@ function configure(pkg, location, env, target) {
       "process.env.NODE_ENV": JSON.stringify(env)
     }),
 
-    // Register Node.js builtins for browserify compatibility.
-    builtins(),
-
     isTypescript &&
       typescript({
         tsconfig: `${location}/tsconfig.rollup.json`,
@@ -92,17 +92,7 @@ function configure(pkg, location, env, target) {
         useTsconfigDeclarationDir: true,
         tsconfigOverride: {
           compilerOptions: {
-            rootDir: path.resolve(location, "src"),
-            paths: {
-              "@vericus/slate-kit*": [
-                `${path.resolve(location, "..")}/*/src`,
-                `${path.resolve(location, "..")}/*/lib`
-              ],
-              "slate*": [
-                `${path.resolve(location, "../../node_modules")}/*`,
-                `${path.resolve(location, "..")}/typescript-typings/types/*`
-              ]
-            }
+            rootDir: path.resolve(location, "src")
           },
           include: [path.resolve(location, "src")]
         }
@@ -112,21 +102,40 @@ function configure(pkg, location, env, target) {
     !isTypescript &&
       babel({
         include: [`${location}/src/**`],
-        plugins: ["external-helpers"]
+        plugins: ["@babel/external-helpers"]
       }),
-
-    visualizer({
-      filename: `tmp/stats/${pkg.name}-${target}-${env}.html`,
-      title: `${pkg.name}`,
-      sourcemap: true
-    }),
 
     // Register Node.js globals for browserify compatibility.
     globals(),
+    analyze({
+      writeTo: string => {
+        fs.writeFileSync(`tmp/stats/${pkg.name}-${target}-${env}.txt`, string);
+      }
+    }),
 
     // Only minify the output in production, since it is very slow. And only
     // for UMD builds, since modules will be bundled by the consumer.
-    isUmd && isProd && uglify()
+    isUmd &&
+      isProd &&
+      terser({
+        parse: {
+          ecma: 8
+        },
+        compress: {
+          ecma: 5,
+          warnings: false,
+          comparisons: false,
+          inline: 2
+        },
+        mangle: {
+          safari10: true
+        },
+        output: {
+          ecma: 5,
+          comments: false,
+          ascii_only: true
+        }
+      })
     // progress()
   ].filter(Boolean);
 

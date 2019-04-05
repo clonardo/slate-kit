@@ -1,72 +1,80 @@
-import Renderer from "@vericus/slate-kit-indentable-list-renderer";
-import AutoReplace from "slate-auto-replace";
+import Register from "@vericus/slate-kit-utils-register-helpers";
+import AutoReplace from "@vericus/slate-kit-utils-auto-replace";
+import { Plugin } from "slate";
 import createProps from "./props";
 import Options, { TypeOptions } from "./options";
-import createUtils from "./utils";
-import createChanges from "./changes";
+import createQueries from "./queries";
+import createCommands from "./commands";
 import createOnKeyDown from "./onKeyDown";
 import createSchema from "./schemas";
 import createRule from "./rules";
+import createStyle from "./style";
 
 export function createPlugin(
-  pluginOptions: Partial<TypeOptions> = {},
-  pluginsWrapper: any
-) {
+  pluginOptions: Partial<TypeOptions> = {}
+): Plugin[] {
   const options = new Options(pluginOptions);
-  const { blockTypes } = options;
+  const { blockTypes, renderer } = options;
   const { orderedlist, unorderedlist, checklist } = blockTypes;
-  const utils = createUtils(options);
-  const changes = createChanges(options, pluginsWrapper);
-  const { createListWithType } = changes;
+  const queries = createQueries(options);
+  const commands = createCommands(options);
   const schema = createSchema(options);
-  const props = createProps(options, pluginsWrapper);
-  const rules = createRule;
-  const onKeyDown = createOnKeyDown(options, pluginsWrapper);
-  let plugins = [
+  const props = createProps(options);
+  const onKeyDown = createOnKeyDown(options);
+  const { getData } = createStyle(options);
+
+  let plugins: Plugin[] = [
+    Register({ getData, nodes: blockTypes, props, createRule, options }),
     {
-      rules,
-      utils,
-      changes,
+      queries,
+      commands,
       onKeyDown: options.withHandlers ? onKeyDown : undefined,
-      options,
-      props,
       schema
     },
     ...(options.withHandlers
       ? [
           AutoReplace({
-            trigger: "space",
-            before: /^(\d+)(\.)$/,
-            change: (change, e, matches) => {
-              const type = orderedlist;
-              return change.call(createListWithType, type, matches.before[1]);
+            trigger: " ",
+            before: /^(\d+\.)$/,
+            command: (editor, matches, next) => {
+              if (
+                matches &&
+                matches.beforeMatches &&
+                matches.beforeMatches[0]
+              ) {
+                const numMatch = matches.beforeMatches[0].match(/(^\d+)/);
+                if (numMatch && numMatch[0]) {
+                  editor.createListWithType(orderedlist, numMatch[0]);
+                }
+                return undefined;
+              }
+              return next();
             }
           }),
           AutoReplace({
-            trigger: "space",
+            trigger: " ",
             before: /^(-)$/,
-            change: change => {
-              const type = unorderedlist;
-              return change.call(createListWithType, type);
-            }
+            command: (editor, _matches, _next) =>
+              editor.createListWithType(unorderedlist)
           }),
           AutoReplace({
-            trigger: "space",
+            trigger: " ",
             before: /^(\[\])$/,
-            change: change => {
-              const type = checklist;
-              return change.call(createListWithType, type);
-            }
+            command: (editor, _matches, _next) =>
+              editor.createListWithType(checklist)
           })
         ]
       : [])
   ];
-  if (!options.externalRenderer) {
-    plugins = [...plugins, { ...Renderer() }];
+  if (renderer) {
+    const rendererPlugins = renderer(options);
+    if (Array.isArray(rendererPlugins)) {
+      plugins = [...plugins, ...rendererPlugins];
+    } else {
+      plugins = [...plugins, rendererPlugins];
+    }
   }
-  return {
-    plugins
-  };
+  return plugins;
 }
 
 export default createPlugin;

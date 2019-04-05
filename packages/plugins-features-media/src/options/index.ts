@@ -27,9 +27,11 @@ export interface TypeOption {
   type: string;
   captionType: string;
   captionHideField: string | null;
-  externalRenderer: boolean;
+  renderer?: (...args: any[]) => any;
   mediaTypes: MediaOption;
   withHandlers: boolean;
+  toolbarRenderer?: (props: any) => JSX.Element;
+  label: string;
 }
 
 export const defaultImageOptions: ImageOption = {
@@ -38,7 +40,7 @@ export const defaultImageOptions: ImageOption = {
   srcField: "src",
   widthField: "width",
   maxSize: 1024000,
-  allowedExtensions: ["png", "tif", "gif", "bmp", "jpg"],
+  allowedExtensions: ["png", "tif", "gif", "bmp", "jpg", "jpeg"],
   type: "image",
   onInsert: () => {}
 };
@@ -51,21 +53,32 @@ export const defaultOptions: TypeOption = {
   type: "media",
   captionHideField: null,
   captionType: "mediaCaption",
-  externalRenderer: false,
+  renderer: undefined,
   mediaTypes: defaultMediaTypesOption,
   blockTypes: {},
-  withHandlers: true
+  withHandlers: true,
+  toolbarRenderer: undefined,
+  label: "media"
 };
 
 export default class Options extends Record(defaultOptions) {
-  type: string;
-  captionType: string;
-  captionHideField: string | null;
-  externalRenderer: boolean;
-  mediaTypes: MediaOption;
-  blockTypes: BlockTypes;
-  withHandlers: boolean;
-  static create(option: Partial<TypeOption>): TypeOption {
+  public type: string;
+
+  public captionType: string;
+
+  public captionHideField: string | null;
+
+  public renderer: (...args: any[]) => any;
+
+  public mediaTypes: MediaOption;
+
+  public blockTypes: BlockTypes;
+
+  public withHandlers: boolean;
+
+  public label: string;
+
+  public static create(option: Partial<TypeOption>): TypeOption {
     let options = {
       ...defaultOptions,
       ...option
@@ -106,11 +119,7 @@ export default class Options extends Record(defaultOptions) {
         mediacaption: option.captionType
           ? option.captionType
           : defaultOptions.captionType
-      },
-      externalRenderer:
-        option.externalRenderer !== undefined
-          ? option.externalRenderer
-          : defaultOptions.externalRenderer
+      }
     };
     return new Options(options);
   }

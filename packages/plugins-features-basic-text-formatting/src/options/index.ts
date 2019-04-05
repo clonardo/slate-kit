@@ -1,10 +1,8 @@
 import { Record } from "immutable";
-import { Change } from "slate";
 
 export interface KeyBinding {
   hotkeys: string;
-  changeName?: string;
-  change?: (change: Change) => void;
+  commandName?: string;
 }
 
 export type MarkTypes = "bold" | "italic" | "underline" | "strikethrough";
@@ -12,17 +10,18 @@ export type MarkTypes = "bold" | "italic" | "underline" | "strikethrough";
 export type TextMark = { [key in MarkTypes]?: string | null };
 
 export interface TypeOptions {
-  externalRenderer: boolean;
+  renderer?: (...args: any[]) => any;
   keyBindings: KeyBinding[];
   marks: TextMark;
   withHandlers: boolean;
+  label: string;
 }
 
 const defaultOption: TypeOptions = {
   keyBindings: [
-    { hotkeys: "mod+b", changeName: "toggleBold" },
-    { hotkeys: "mod+i", changeName: "toggleItalic" },
-    { hotkeys: "mod+u", changeName: "toggleUnderline" }
+    { hotkeys: "mod+b", commandName: "toggleBold" },
+    { hotkeys: "mod+i", commandName: "toggleItalic" },
+    { hotkeys: "mod+u", commandName: "toggleUnderline" }
   ],
   marks: {
     bold: "bold",
@@ -30,15 +29,37 @@ const defaultOption: TypeOptions = {
     underline: "underline",
     strikethrough: "strikethrough"
   },
-  externalRenderer: false,
-  withHandlers: true
+  renderer: undefined,
+  withHandlers: true,
+  label: "basic-text-formatting"
 };
 
 class Options extends Record(defaultOption) {
-  externalRenderer: boolean;
-  keyBindings: KeyBinding[];
-  marks: TextMark;
-  withHandlers: boolean;
+  public renderer: (...args: any[]) => any;
+
+  public keyBindings: KeyBinding[];
+
+  public marks: TextMark;
+
+  public withHandlers: boolean;
+
+  public label: string;
+
+  public static create(option: Partial<TypeOptions>): TypeOptions {
+    const options = {
+      ...defaultOption,
+      marks: {
+        ...defaultOption.marks,
+        ...(option.marks ? option.marks : {})
+      },
+      keyBindings: [
+        ...defaultOption.keyBindings,
+        ...(option.keyBindings ? option.keyBindings : [])
+      ],
+      ...option
+    };
+    return new Options(options);
+  }
 }
 
 export default Options;

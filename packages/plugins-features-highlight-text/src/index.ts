@@ -1,27 +1,38 @@
-import Renderer from "@vericus/slate-kit-highlight-text-renderer";
+import Register from "@vericus/slate-kit-utils-register-helpers";
+import { Plugin } from "slate";
 import Options, { TypeOptions } from "./options";
 import createProps from "./props";
-import createChanges from "./changes";
-import createUtils from "./utils";
+import createCommands from "./commands";
+import createQueries from "./queries";
 
 export default function createPlugin(
-  pluginOptions: TypeOptions,
-  pluginsWrapper
-) {
+  pluginOptions: Partial<TypeOptions> = {}
+): Plugin[] {
   const options = Options.create(pluginOptions);
-  const { type } = options;
-  const changes = createChanges(options);
-  const utils = createUtils(options);
+  const { marks, renderer } = options;
+  const commands = createCommands(options);
+  const queries = createQueries(options);
   const props = createProps(options);
-  const plugin: any = {
-    options,
-    changes,
-    utils,
-    props
-  };
-  if (!options.externalRenderer) {
-    const { renderers } = Renderer(type);
-    plugin.renderers = renderers;
+
+  let plugins: Plugin[] = [
+    Register({
+      options,
+      marks,
+      props
+    }),
+    {
+      commands,
+      queries
+    }
+  ];
+  if (renderer) {
+    const rendererPlugins = renderer(options);
+    if (Array.isArray(rendererPlugins)) {
+      plugins = [...plugins, ...rendererPlugins];
+    } else {
+      plugins = [...plugins, rendererPlugins];
+    }
   }
-  return plugin;
+
+  return plugins;
 }

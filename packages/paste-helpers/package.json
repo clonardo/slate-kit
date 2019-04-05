@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1",
+  "version": "0.2.13",
   "name": "@vericus/slate-kit-paste-helpers",
   "description": "HTML paste cleaner",
   "homepage": "https://github.com/Vericus/slate-kit/",
@@ -31,11 +31,20 @@
     "clean:module": "rm -rf ./node_modules",
     "clean:build": "rm -rf ./dist ./lib ./module",
     "build": "tsc -b .",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "debug": "tsc --traceResolution ./src"
   },
   "dependencies": {
     "tinymce-word-paste-filter": "^0.6.1",
     "tslib": "^1.9.3"
+  },
+  "peerDependencies": {
+    "slate": ">=0.44.0 <0.46.0"
+  },
+  "devDependencies": {
+    "@vericus/slate-kit-typescript-typings": "^1.1.11",
+    "@vericus/slate-kit-utils-hyperscript": "^0.2.11",
+    "slate": ">=0.44.0 <0.46.0"
   },
   "keywords": [
     "Vericus",

@@ -9,8 +9,10 @@ const markTags = {
   del: "strikethrough"
 };
 
-export default function createRule(options, getData) {
-  const { marks: markTypes } = options;
+export default function createRule(options, editor) {
+  const { marks: markTypes } = Array.isArray(options)
+    ? options.find(option => option.marks)
+    : options;
   return [
     {
       deserialize(el, next) {
@@ -46,7 +48,7 @@ export default function createRule(options, getData) {
       deserialize(el) {
         if (el.nodeName === "#text") {
           const { parentNode } = el;
-          const { data, marks } = getData(parentNode);
+          const { data, marks } = editor.getData(parentNode);
           return {
             object: "text",
             leaves: [

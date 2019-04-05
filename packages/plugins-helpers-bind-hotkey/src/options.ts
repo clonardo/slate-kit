@@ -1,16 +1,23 @@
 import { Record } from "immutable";
-import { Change } from "slate";
 
 export interface TypeOptions {
   hotkeys?: string | string[];
-  change?: (change: Change) => Change;
+  commandName?: string;
+  commandArgs?: any[];
 }
 
-const defaultOptions: TypeOptions = { hotkeys: undefined, change: undefined };
+const defaultOptions: TypeOptions = {
+  hotkeys: undefined,
+  commandName: undefined,
+  commandArgs: undefined
+};
 
 class Options extends Record(defaultOptions) {
-  hotkeys: string | string[];
-  change: (change: Change) => Change;
+  public hotkeys: string | string[];
+
+  public commandName: string;
+
+  public commandArgs?: any[];
 }
 
 export default Options;

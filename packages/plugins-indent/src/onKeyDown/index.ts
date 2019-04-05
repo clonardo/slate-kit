@@ -1,9 +1,7 @@
-import { Change } from "slate";
+import { Editor } from "slate";
 import isHotkey from "is-hotkey";
 import hotkeys from "slate-hotkeys";
 import { TypeOptions } from "../options";
-import { increaseIndent, decreaseIndent } from "../changes";
-import { getIndentationLevel } from "../utils";
 
 export default function createOnKeyDown(opts: TypeOptions) {
   const { tabable } = opts;
@@ -12,30 +10,27 @@ export default function createOnKeyDown(opts: TypeOptions) {
     isDeleteLineBackward,
     isDeleteWordBackward
   } = hotkeys;
-  const isDelete = e =>
+  const isDeleteHotKey = e =>
     isDeleteBackward(e) || isDeleteLineBackward(e) || isDeleteWordBackward(e);
 
-  return (event, change: Change) => {
-    const { value } = change;
+  return (event, editor: Editor, next) => {
+    const { value } = editor;
     const { startBlock, endBlock, selection } = value;
     const {
       isCollapsed,
       start: { offset: startOffset }
     } = selection;
     const isIndent = isHotkey("tab", event);
+    const isDelete = isDeleteHotKey(event);
     const isOutdent =
       isHotkey("shift+tab", event) ||
-      (isDelete(event) &&
-        startBlock === endBlock &&
-        isCollapsed &&
-        startOffset === 0);
-    if (!(isIndent || isOutdent)) return undefined;
+      (isDelete && startBlock === endBlock && isCollapsed && startOffset === 0);
     if (isOutdent) {
       event.preventDefault();
       event.stopPropagation();
-      if (getIndentationLevel(opts, startBlock) !== 0) {
-        decreaseIndent(opts, change);
-        return true;
+      if (!isDelete || editor.getIndentationLevel(startBlock) !== 0) {
+        editor.decreaseIndent();
+        return undefined;
       }
     } else if (isIndent) {
       event.preventDefault();
@@ -45,11 +40,12 @@ export default function createOnKeyDown(opts: TypeOptions) {
         selection.isCollapsed &&
         tabable.includes(startBlock.type)
       ) {
-        change.insertText("\t");
+        editor.insertText("\t");
         return undefined;
       }
-      increaseIndent(opts, change);
+      editor.increaseIndent();
+      return undefined;
     }
-    return undefined;
+    return next();
   };
 }

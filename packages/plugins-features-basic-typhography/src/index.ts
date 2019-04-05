@@ -1,24 +1,34 @@
-import Renderer from "@vericus/slate-kit-basic-typography-renderer";
+import Register from "@vericus/slate-kit-utils-register-helpers";
+import { Plugin } from "slate";
 import Options, { TypeOptions } from "./options";
-import createChanges from "./changes";
-import createUtils from "./utils";
+import createCommands from "./commands";
+import createQueries from "./queries";
 import createSchema from "./schemas";
 import createRule from "./rules";
 
 export default function createPlugin(
-  pluginOptions: TypeOptions,
-  pluginsWrapper: any
-) {
-  const options = new Options(pluginOptions);
-  const utils = createUtils(options);
-  const changes = createChanges(options);
+  pluginOptions: Partial<TypeOptions> = {}
+): Plugin[] {
+  const options = Options.create(pluginOptions);
+  const { blockTypes, defaultBlock, renderer } = options;
+  const queries = createQueries(options);
+  const commands = createCommands(options);
   const schema = createSchema(options);
-  const rules = createRule;
-  let plugins: any = [{ options, rules, changes, utils, schema }];
-  if (!options.externalRenderer) {
-    plugins = [...plugins, { ...Renderer() }];
-  }
-  return {
-    plugins
+  const nodes = {
+    ...blockTypes,
+    default: defaultBlock
   };
+  let plugins: Plugin[] = [
+    Register({ nodes, createRule, options }),
+    { commands, queries, schema }
+  ];
+  if (renderer) {
+    const rendererPlugins = renderer(options);
+    if (Array.isArray(rendererPlugins)) {
+      plugins = [...plugins, ...rendererPlugins];
+    } else {
+      plugins = [...plugins, rendererPlugins];
+    }
+  }
+  return plugins;
 }

@@ -1,7 +1,7 @@
 // remove everything from HTML string except the content of <body/>
-export default function cleanHTML(html: string) {
-  return html.replace(
-    /[.\s\S\w\W<>]*<body[^>]*>([.\s\S\w\W<>]*)<\/body>[.\s\S\w\W<>]*/gi,
-    "$1"
-  );
+export default async function cleanHTML(html: string): Promise<string> {
+  return new Promise(resolve => {
+    const dom = new DOMParser().parseFromString(html, "text/html");
+    resolve((dom && dom.body && dom.body.innerHTML) || "");
+  });
 }
